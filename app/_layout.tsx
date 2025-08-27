@@ -6,28 +6,52 @@ import { supabase } from "../lib/supabase";
 export default function Layout() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [needsProfile, setNeedsProfile] = useState(false);
 
   useEffect(() => {
-    // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (!data?.full_name) setNeedsProfile(true);
+            setLoading(false);
+          });
+      } else {
+        setLoading(false);
+      }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return null; // optional splash/loading screen
+  if (loading) {
+    // Always return a Stack with at least one screen
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="loading" />
+      </Stack>
+    );
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      {/* Only the first screen is defined; Expo Router handles the rest */}
-      {session ? <Stack.Screen name="dashboard" /> : <Stack.Screen name="auth/sign-in" />}
+      {!session && <Stack.Screen name="index" />} {/* Get Started */}
+      {session && needsProfile && (
+        <Stack.Screen name="auth/complete-profile" />
+      )}
+      {session && !needsProfile && <Stack.Screen name="dashboard" />}
     </Stack>
   );
 }

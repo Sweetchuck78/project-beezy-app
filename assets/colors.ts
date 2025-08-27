@@ -7,4 +7,5 @@ export default {
   border: '#CCCCCC',
   error: '#FF3B30',
   buttonPrimary: '#005C53',
+  accentBackground: '#DBF227',
 };

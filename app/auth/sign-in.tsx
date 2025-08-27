@@ -55,10 +55,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center', // centers horizontally
     gap: 5, // spacing between text and button (requires React Native 0.71+)
   },
-  bottomText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
   buttonPrimary: {
     backgroundColor: colors.buttonPrimary,
     borderRadius: 7,
@@ -69,12 +65,17 @@ const styles = StyleSheet.create({
     paddingEnd: 30,
     paddingTop: 11,
     paddingBottom: 11,
+    fontWeight: 'bold'
   },
   buttonText: {
     color: '#fff',               // text color
     fontSize: 16,
-    fontWeight: '400',         // '400' is equivalent to normal
+    fontWeight: '700',         // '400' is equivalent to normal
     fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
   },
-  bottomTextLink: {fontWeight: 'bold', fontSize: 16 }
+  bottomText: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  bottomTextLink: {fontWeight: 'bold', fontSize: 15 }
 });
