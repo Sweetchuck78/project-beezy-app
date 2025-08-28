@@ -48,7 +48,7 @@ export default function GetStartedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   background: {
     flex: 1,
     width: '100%',

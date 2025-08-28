@@ -8,4 +8,6 @@ export default {
   error: '#FF3B30',
   buttonPrimary: '#005C53',
   accentBackground: '#DBF227',
+  white: '#FFFFFF',
+  dark: '#232323',
 };

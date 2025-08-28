@@ -41,7 +41,7 @@ export default function SignUpScreen() {
 
   // 2️⃣ Navigate to Complete Profile screen anyway (optional)
   router.push({
-    pathname: '/auth/select-role',
+    pathname: '/auth/verify-email',
     params: { userId: user.id, email },
   });
 };
@@ -50,6 +50,8 @@ export default function SignUpScreen() {
     <SafeAreaView style={styles.container}>
       <View>
         <Text style={styles.viewName}>Sign Up</Text>
+
+        <Text style={styles.introText}>Creating an account is simple and quick. Let's start with just your email.</Text>
 
         <Text>Email</Text>
         <TextInput value={email} onChangeText={setEmail} style={styles.input} keyboardType="email-address" />
@@ -75,7 +77,7 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'space-between' },
+  container: { flex: 1, padding: 20, justifyContent: 'space-between', backgroundColor: colors.background },
   viewName: { fontSize: 32, marginBottom: 20, fontWeight: 'bold' },
   input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 10, padding: 10, borderRadius: 6, marginTop: 10, height: 44 },
   bottomContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
@@ -88,7 +90,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     marginTop: 20,
   },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '400', fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600', fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif' },
   bottomText: { fontSize: 15, fontWeight: '400' },
   bottomTextLink: { fontWeight: 'bold', fontSize: 15 },
+  introText: {
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: "left",
+    lineHeight: 24,
+  }
 });

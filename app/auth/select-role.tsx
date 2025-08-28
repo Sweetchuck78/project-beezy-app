@@ -16,34 +16,46 @@ export default function SelectRoleScreen() {
   const [msg, setMsg] = useState("");
 
   const handleRoleSelect = async (role: "requester" | "provider") => {
-    setLoading(true);
-    setMsg("");
+  setLoading(true);
+  setMsg("");
 
-    // Save role in Supabase profiles table
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role })
-      .eq("id", userId);
+  // Get the current authenticated user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    if (error) {
-      setMsg(error.message);
-      setLoading(false);
-      return;
-    }
+  if (userError || !user) {
+    setMsg("Could not fetch user.");
+    setLoading(false);
+    return;
+  }
 
-    // Navigate based on role
-    if (role === "requester") {
-      router.push({
-        pathname: "/auth/complete-profile",
-        params: { userId, email },
-      });
-    } else {
-      router.push({
-        pathname: "/auth/complete-provider-profile",
-        params: { userId, email },
-      });
-    }
-  };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role })
+    .eq("id", user.id); // always use the supabase auth user ID
+
+  if (error) {
+    setMsg(error.message);
+    setLoading(false);
+    return;
+  }
+
+  // Navigate based on role
+  if (role === "requester") {
+    router.push({
+      pathname: "/auth/complete-profile",
+      params: { userId: user.id, email: user.email },
+    });
+  } else {
+    router.push({
+      pathname: "/auth/complete-provider-profile",
+      params: { userId: user.id, email: user.email },
+    });
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,7 +67,7 @@ export default function SelectRoleScreen() {
         onPress={() => handleRoleSelect("requester")}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>I am a Service Requester</Text>
+        <Text style={styles.buttonText}>I'm' a Help Hunter</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -63,7 +75,7 @@ export default function SelectRoleScreen() {
         onPress={() => handleRoleSelect("provider")}
         disabled={loading}
       >
-        <Text style={styles.buttonTextSecondary}>I am a Service Provider</Text>
+        <Text style={styles.buttonTextSecondary}>I'm a Service Provider</Text>
       </TouchableOpacity>
 
       {msg ? <Text style={styles.error}>{msg}</Text> : null}
