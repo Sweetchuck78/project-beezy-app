@@ -32,7 +32,7 @@ export default function SignInScreen() {
         <TouchableOpacity style={styles.buttonPrimary} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
-        <Text>{msg}</Text>
+        <Text style={{color: colors.error, marginTop: 20}}>{msg}</Text>
       </View>
       {/* ✅ Expo Router navigation */}
       <View style={styles.bottomContent}>

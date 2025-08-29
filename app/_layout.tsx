@@ -69,7 +69,7 @@ export default function Layout() {
     <Stack screenOptions={{ headerShown: false }}>
       {!session && <Stack.Screen name="index" />} {/* Get Started */}
       {session && needsProfile && <Stack.Screen name="auth/complete-profile" />}
-      {session && !needsProfile && <Stack.Screen name="dashboard" />}
+      {session && !needsProfile && <Stack.Screen name="dashboard/index" />}
     </Stack>
   );
 }
