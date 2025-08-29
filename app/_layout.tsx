@@ -1,6 +1,6 @@
 // app/_layout.tsx
 import * as Font from "expo-font";
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text as RNText, View } from "react-native";
 import { supabase } from "../lib/supabase";
@@ -18,7 +18,6 @@ export default function Layout() {
         InterVariable: require("../assets/fonts/Inter-VariableFont_opsz,wght.ttf"),
       });
 
-      // TypeScript-safe global default for all Text components
       (RNText as any).defaultProps = (RNText as any).defaultProps || {};
       (RNText as any).defaultProps.style = { fontFamily: "InterVariable" };
 
@@ -56,7 +55,7 @@ export default function Layout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Show loading indicator until fonts and session/profile are ready
+  // Show loading indicator until ready
   if (loading || !fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -65,11 +64,18 @@ export default function Layout() {
     );
   }
 
+  // 🚀 Use Redirect instead of conditional Stack children
+  if (!session) {
+    return <Redirect href="/" />;
+  }
+  if (needsProfile) {
+    return <Redirect href="/auth/complete-profile" />;
+  }
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      {!session && <Stack.Screen name="index" />} {/* Get Started */}
-      {session && needsProfile && <Stack.Screen name="auth/complete-profile" />}
-      {session && !needsProfile && <Stack.Screen name="dashboard/index" />}
+      <Stack.Screen name="(tabs)" /> 
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
     </Stack>
   );
 }

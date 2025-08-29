@@ -157,8 +157,14 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* Floating Plus Button */}
-      <TouchableOpacity style={styles.floatingButton} onPress={() => { /* navigate */ }}>
-        <Image source={require('@/assets/images/icons/plus.png')} style={styles.plus} />
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => router.push("/jobs/create")}
+      >
+        <Image
+          source={require("@/assets/images/icons/plus.png")}
+          style={styles.plus}
+        />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -178,8 +184,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 30,
-    width: 80,
-    height: 80,
+    width: 48,
+    height: 48,
     borderRadius: 40,
     backgroundColor: colors.buttonPrimary,
     justifyContent: 'center',
@@ -194,8 +200,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 40,
     fontWeight: 'bold',
-    width: 32,
-    height: 32,
+    width: 24,
+    height: 24,
   },
   viewName: {
     fontSize: 32,
@@ -206,6 +212,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     rowGap: 8,
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.15)',
   },
   tileTitle: {
     fontSize: 18,

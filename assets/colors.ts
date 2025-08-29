@@ -10,4 +10,5 @@ export default {
   accentBackground: '#DBF227',
   white: '#FFFFFF',
   dark: '#232323',
+  yellow: '#DBF227',
 };

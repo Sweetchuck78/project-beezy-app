@@ -41,7 +41,7 @@ export default function JobsListScreen() {
   const renderItem = ({ item }: { item: Job }) => (
     <TouchableOpacity
       style={styles.jobCard}
-      onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
+      // onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
     >
       <Text style={styles.title}>{item.title}</Text>
       <Text numberOfLines={2}>{item.description}</Text>
