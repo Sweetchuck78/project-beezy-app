@@ -1,61 +1,83 @@
 // app/_layout.tsx
 import * as Font from "expo-font";
-import { Redirect, Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text as RNText, View } from "react-native";
 import { supabase } from "../lib/supabase";
 
-export default function Layout() {
+export default function RootLayout() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [needsProfile, setNeedsProfile] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  // Load fonts once
+  const router = useRouter();
+
+  // Load fonts
   useEffect(() => {
     async function loadFonts() {
-      await Font.loadAsync({
-        InterVariable: require("../assets/fonts/Inter-VariableFont_opsz,wght.ttf"),
-      });
+      try {
+        await Font.loadAsync({
+          InterVariable: require("../assets/fonts/Inter-VariableFont_opsz,wght.ttf"),
+        });
 
-      (RNText as any).defaultProps = (RNText as any).defaultProps || {};
-      (RNText as any).defaultProps.style = { fontFamily: "InterVariable" };
+        (RNText as any).defaultProps = (RNText as any).defaultProps || {};
+        (RNText as any).defaultProps.style = { fontFamily: "InterVariable" };
 
-      setFontsLoaded(true);
+        setFontsLoaded(true);
+      } catch {
+        setFontsLoaded(true); // fail gracefully
+      }
     }
     loadFonts();
   }, []);
 
-  // Load session and profile info
+  // Load session + profile
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (error) {
+        setLoading(false);
+        return;
+      }
+
       setSession(session);
 
       if (session?.user) {
-        supabase
+        const { data } = await supabase
           .from("profiles")
           .select("full_name")
           .eq("id", session.user.id)
-          .single()
-          .then(({ data }) => {
-            if (!data?.full_name) setNeedsProfile(true);
-            setLoading(false);
-          });
-      } else {
-        setLoading(false);
+          .single();
+
+        if (!data?.full_name) setNeedsProfile(true);
       }
+
+      setLoading(false);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      data.subscription.unsubscribe();
+    };
   }, []);
 
-  // Show loading indicator until ready
+  // 🔑 Handle redirects only after state settles
+  useEffect(() => {
+    if (!loading && fontsLoaded) {
+      if (!session) {
+        router.replace("/auth/sign-in");
+      } else if (needsProfile) {
+        router.replace("/auth/select-role");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+  }, [loading, fontsLoaded, session, needsProfile]);
+
+  // Show spinner while loading
   if (loading || !fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -64,17 +86,11 @@ export default function Layout() {
     );
   }
 
-  // 🚀 Use Redirect instead of conditional Stack children
-  if (!session) {
-    return <Redirect href="/" />;
-  }
-  if (needsProfile) {
-    return <Redirect href="/auth/complete-profile" />;
-  }
-
+  // Always return a <Stack /> for Expo Router
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" /> 
+   <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+      <Stack.Screen name="jobs" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
     </Stack>
   );
