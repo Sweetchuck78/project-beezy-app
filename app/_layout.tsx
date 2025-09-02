@@ -1,8 +1,10 @@
 // app/_layout.tsx
+import { ThemeProvider } from '@/components/ThemeContext';
+import { Colors } from '@/constants/Colors';
 import * as Font from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text as RNText, View } from "react-native";
+import { ActivityIndicator, Text as RNText, View, useColorScheme } from "react-native";
 import { supabase } from "../lib/supabase";
 
 export default function RootLayout() {
@@ -10,6 +12,7 @@ export default function RootLayout() {
   const [loading, setLoading] = useState(true);
   const [needsProfile, setNeedsProfile] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const colorScheme = useColorScheme() || "light";
 
   const router = useRouter();
 
@@ -68,7 +71,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!loading && fontsLoaded) {
       if (!session) {
-        router.replace("/auth/sign-in");
+        router.replace("/");
       } else if (needsProfile) {
         router.replace("/auth/select-role");
       } else {
@@ -80,7 +83,7 @@ export default function RootLayout() {
   // Show spinner while loading
   if (loading || !fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor:Colors[colorScheme].appBackground}}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -88,10 +91,12 @@ export default function RootLayout() {
 
   // Always return a <Stack /> for Expo Router
   return (
-   <Stack screenOptions={{ headerShown: false }}>
+   <ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="dashboard" options={{ headerShown: false }} />
       <Stack.Screen name="jobs" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
     </Stack>
+   </ThemeProvider>
   );
 }
