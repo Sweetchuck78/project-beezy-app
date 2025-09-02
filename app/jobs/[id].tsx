@@ -1,27 +1,36 @@
-// screens/jobs/JobDetailScreen.tsx
+// screens/jobs/[id].tsx
 
-import { useRoute } from '@react-navigation/native';
+import { Colors } from '@/constants/Colors';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, SafeAreaView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 interface Job {
   id: string;
-  title: string;
-  description: string;
+  summary: string;
+  details: {
+    description?: string;
+    budget?: string;
+    timeframe?: string;
+  };
   status: string;
   created_at: string;
 }
 
 export default function JobDetailScreen() {
-  const route = useRoute();
-  const { jobId } = route.params as { jobId: string };
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const navigation = useNavigation();
 
   const [job, setJob] = useState<Job | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [bidAmount, setBidAmount] = useState<string>('');
-  const [bidNotes, setBidNotes] = useState<string>('');
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+
+  const [bidAmount, setBidAmount] = useState('');
+  const [bidNotes, setBidNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
 
   // Fetch job details
   const fetchJob = async () => {
@@ -29,19 +38,21 @@ export default function JobDetailScreen() {
     const { data, error } = await supabase
       .from('jobs')
       .select('*')
-      .eq('id', jobId)
+      .eq('id', id)
       .single();
-    if (error) {
-      console.log('Error fetching job:', error.message);
-    } else {
-      setJob(data);
+
+    if (!error && data) {
+      setJob(data as Job);
+
+      // 👇 set navigation bar title
+      navigation.setOptions({ title: data.summary || 'Job Detail' });
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchJob();
-  }, []);
+    if (id) fetchJob();
+  }, [id]);
 
   const handleSubmitBid = async () => {
     if (!bidAmount) {
@@ -51,11 +62,11 @@ export default function JobDetailScreen() {
 
     setSubmitting(true);
 
-    const user = supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
 
     const { error } = await supabase.from('bids').insert({
-      job_id: jobId,
-      provider_id: (await user).data.user?.id,
+      job_id: id,
+      provider_id: userData?.user?.id,
       amount: parseFloat(bidAmount),
       notes: bidNotes || '',
       created_at: new Date(),
@@ -89,10 +100,15 @@ export default function JobDetailScreen() {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={styles.title}>{job.title}</Text>
-      <Text style={styles.description}>{job.description}</Text>
-      <Text style={styles.date}>Posted on: {new Date(job.created_at).toLocaleDateString()}</Text>
+    <SafeAreaView style={[ {flex: 1, padding: 20}, {backgroundColor: theme.appBackground }]}>
+      <View >
+      <Text style={[styles.title,{color: theme.text}]}>{job.summary}</Text>
+      <Text style={[styles.description,{color: theme.text}]}>
+        {job.details?.description || "No description provided."}
+      </Text>
+      <Text style={styles.date}>
+        Posted on: {new Date(job.created_at).toLocaleDateString()}
+      </Text>
 
       <View style={{ marginTop: 30 }}>
         <Text style={{ marginBottom: 5 }}>Your Bid ($)</Text>
@@ -109,9 +125,14 @@ export default function JobDetailScreen() {
           onChangeText={setBidNotes}
           multiline
         />
-        <Button title={submitting ? 'Submitting...' : 'Submit Bid'} onPress={handleSubmitBid} disabled={submitting} />
+        <Button
+          title={submitting ? 'Submitting...' : 'Submit Bid'}
+          onPress={handleSubmitBid}
+          disabled={submitting}
+        />
       </View>
     </View>
+    </SafeAreaView>
   );
 }
 

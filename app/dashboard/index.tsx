@@ -1,16 +1,22 @@
 import colors from '@/assets/colors';
+import { Colors } from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
 export default function DashboardScreen() {
   const [firstName, setFirstName] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null); // 👈 track role
   const [jobs, setJobs] = useState<any[] | null>(null);
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [topProviders, setTopProviders] = useState<any[]>([]);
   const [loadingProviders, setLoadingProviders] = useState<boolean>(true);
+
+  const colorScheme = useColorScheme() || "light";
+  const theme = Colors[colorScheme];
 
   useEffect(() => {
     const fetchUserProfileAndJobs = async () => {
@@ -21,24 +27,30 @@ export default function DashboardScreen() {
 
       if (authError || !user) return;
 
-      // Fetch user profile
+      // Fetch user profile (name + role)
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, role')
         .eq('id', user.id)
         .single();
 
-      if (!profileError && profileData?.full_name) {
-        const first = profileData.full_name.split(' ')[0];
-        setFirstName(first);
+      if (!profileError && profileData) {
+        if (profileData.full_name) {
+          const first = profileData.full_name.split(' ')[0];
+          setFirstName(first);
+        }
+        setRole(profileData.role);
       }
 
       // Fetch jobs created by the user
+      // Fetch most recent job created by the user
       setLoadingJobs(true);
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
         .select('*')
-        .eq('requester_id', user.id); // <-- fixed column name
+        .eq('requester_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
       if (!jobsError) {
         setJobs(jobsData || []);
@@ -110,60 +122,89 @@ export default function DashboardScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.parentContainer}>
+    <SafeAreaView style={[styles.parentContainer, { backgroundColor: theme.appBackground }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.column}>
           <View style={{ flexDirection: 'column', rowGap: 8 }}>
-            <Text style={styles.viewName}>Hi, {firstName}</Text>
-            <Text>Welcome back!</Text>
+            <Text style={[styles.viewName, { color: theme.text }]}>Hi, {firstName}</Text>
+            <Text style={{ color: theme.text }}>Welcome back!</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.tile}
-            onPress={() => {
-              router.push('/jobs');
-            }}
-          >
-            <Text style={styles.tileTitle}>Jobs</Text>
+          {/* Jobs Tile */}
+          <View style={[styles.tile, { backgroundColor: theme.accentTileBackground }]}>
+            <Text style={styles.tileTitle}>Recent Jobs</Text>
             {loadingJobs ? (
               <Text>Loading...</Text>
             ) : jobs && jobs.length === 0 ? (
               <Text>You haven't created any jobs.</Text>
             ) : (
-              jobs &&
-              jobs.map((job, idx) => (
-                <Text key={job.id || idx}>{job.title || 'Untitled Job'}</Text>
-              ))
+              jobs && jobs[0] && (
+                <TouchableOpacity
+                  onPress={() => router.push(`/jobs/${jobs[0].id}`)}
+                  style={[styles.featuredJob, {flexDirection: 'row', justifyContent: 'space-between', gap: 8}]}
+                >
+                  <Text
+                    style={[
+                      styles.jobTitle,
+                      { color: theme.tileText, marginVertical: 4, flexGrow: 1 },
+                    ]}
+                  >
+                    {jobs[0].summary || 'Untitled Job'}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color={theme.tileText} />
+                </TouchableOpacity>
+              )
             )}
-          </TouchableOpacity>
 
-          <View style={styles.tile}>
-            <Text style={styles.tileTitle}>My Pros</Text>
-            {loadingProviders ? (
-              <Text>Loading...</Text>
-            ) : topProviders.length === 0 ? (
-              <Text>You haven't hired a pro yet.</Text>
-            ) : (
-              topProviders.map(({ provider, count }) => (
-                <Text key={provider.id}>
-                  {provider.full_name} ({provider.company_name}) — {count} jobs
+            {/* Button to go to Jobs list */}
+            {jobs && jobs.length > 0 && (
+              <TouchableOpacity
+                style={{
+                  marginTop: 12,
+                  paddingVertical: 12,
+                  borderRadius: 24,
+                  backgroundColor: theme.surface,
+                  alignItems: 'center',
+                }}
+                onPress={() => router.push('/jobs')}
+              >
+                <Text style={{ color: theme.text, fontWeight: '600' }}>
+                  View All Jobs
                 </Text>
-              ))
+              </TouchableOpacity>
             )}
           </View>
 
-          {/* <Button title="Sign Out" onPress={handleSignOut} /> */}
+
+          {/* My Pros Tile - only for requester */}
+          {/* {role === "requester" && (
+            <View style={[styles.tile, { backgroundColor: theme.tileBackground }]}>
+              <Text style={[styles.jobTitle, { color: theme.tileText }]}>My Pros</Text>
+              {loadingProviders ? (
+                <Text>Loading...</Text>
+              ) : topProviders.length === 0 ? (
+                <Text>You haven't hired a pro yet.</Text>
+              ) : (
+                topProviders.map(({ provider, count }) => (
+                  <Text key={provider.id}>
+                    {provider.full_name} ({provider.company_name}) — {count} jobs
+                  </Text>
+                ))
+              )}
+            </View>
+          )} */}
         </View>
       </ScrollView>
 
       {/* Floating Plus Button */}
       <TouchableOpacity
-        style={styles.floatingButton}
+        style={[styles.floatingButton, { backgroundColor: theme.primary }]}
         onPress={() => router.push("/jobs/create")}
       >
         <Image
           source={require("@/assets/images/icons/plus.png")}
           style={styles.plus}
+          tintColor={theme.buttonTint}
         />
       </TouchableOpacity>
     </SafeAreaView>
@@ -187,7 +228,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 40,
-    backgroundColor: colors.buttonPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -215,7 +255,20 @@ const styles = StyleSheet.create({
     boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.15)',
   },
   tileTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
+  },
+  jobTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  featuredJob: {
+    fontSize: 16,
+    fontWeight: '600',
+    borderWidth: 1,
+    borderRadius: 48,
+    borderColor: '#232323',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
 });

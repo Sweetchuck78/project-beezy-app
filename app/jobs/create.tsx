@@ -19,10 +19,19 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import BotChatBubble from "../../components/ui/BotChatBubble";
 import { supabase } from "../../lib/supabase";
 
-// ✅ define message type
+// Chat message type for rendering bubbles
 type ChatMessage = {
   role: "bot" | "user";
   content: string;
+};
+
+// Job data type (from Bizzy Bot JSON)
+type JobData = {
+  title: string;
+  description: string;
+  budget?: string;
+  timeframe?: string;
+  category: string;
 };
 
 export default function CreateJobScreen() {
@@ -43,11 +52,12 @@ export default function CreateJobScreen() {
 
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [kbOpen, setKbOpen] = useState(false); // 👈 track keyboard
+  const [kbOpen, setKbOpen] = useState(false);
+  const [pendingJob, setPendingJob] = useState<JobData | null>(null);
 
-  // 👇 ref for auto-scroll
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // Load authenticated user
   useEffect(() => {
     async function loadUser() {
       const {
@@ -63,14 +73,14 @@ export default function CreateJobScreen() {
     loadUser();
   }, []);
 
-  // auto-scroll when new messages, typing indicator, or keyboard state changes
+  // Auto scroll when new messages, thinking, or keyboard state changes
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
     }
   }, [messages, isThinking, kbOpen]);
 
-  // listen to keyboard to toggle bottom safe padding
+  // Listen for keyboard open/close
   useEffect(() => {
     const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
     const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
@@ -85,7 +95,12 @@ export default function CreateJobScreen() {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // add user message to UI
+    // Clear pending job if user keeps typing after summary
+    if (pendingJob) {
+      setPendingJob(null);
+    }
+
+    // 1. Add user message to UI immediately
     const newMessages: ChatMessage[] = [
       ...messages,
       { role: "user", content: input },
@@ -95,8 +110,15 @@ export default function CreateJobScreen() {
     setIsThinking(true);
 
     try {
+      // 2. Convert local messages into OpenAI format
+      const history = newMessages.map((m) => ({
+        role: m.role === "bot" ? "assistant" : "user",
+        content: m.content,
+      }));
+
+      // 3. Call your edge function
       const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: { message: input.trim() },
+        body: { message: input.trim(), history },
       });
 
       if (error) {
@@ -105,12 +127,84 @@ export default function CreateJobScreen() {
         return;
       }
 
-      const aiReply = data?.reply || "Hmm, I didn’t catch that.";
-      setMessages((prev) => [...prev, { role: "bot", content: aiReply }]);
+      const aiReply = data?.reply;
+
+      // 4. Try parsing AI reply as JSON
+      let parsed: { friendly_summary: string; job: JobData } | null = null;
+      try {
+        const trimmed = aiReply.trim();
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+          parsed = JSON.parse(trimmed);
+        }
+      } catch (e) {
+        console.error("Parse error:", e);
+      }
+
+      if (parsed) {
+        // ✅ Parsed JSON summary
+        setMessages((prev) => [
+          ...prev,
+          { role: "bot", content: parsed.friendly_summary },
+        ]);
+        setPendingJob(parsed.job); // background JSON for jobs table
+      } else if (aiReply) {
+        const trimmed = aiReply.trim();
+        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+          // Looks like JSON but couldn't parse → don't show raw JSON
+          console.warn("AI returned invalid JSON, not displaying.");
+        } else {
+          // Normal bot message (clarifying questions etc.)
+          setMessages((prev) => [...prev, { role: "bot", content: aiReply }]);
+        }
+      }
     } catch (err) {
       console.error("Error sending message:", err);
     } finally {
       setIsThinking(false);
+    }
+  };
+
+  const confirmJob = async () => {
+    if (!pendingJob || !user) return;
+
+    try {
+      // get profile to fetch user's zip
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("zip")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+      }
+
+      const { data, error } = await supabase
+        .from("jobs")
+        .insert({
+          requester_id: user.id,
+          category: pendingJob.category || null,
+          summary: pendingJob.title,
+          details: pendingJob,
+          zipcode: profile?.zip || null, // 👈 pull from profiles.zip
+          status: "open",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "bot", content: "✅ Your job has been created!" },
+      ]);
+      setPendingJob(null);
+    } catch (err) {
+      console.error("Error inserting job:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "bot", content: "❌ Sorry, something went wrong creating your job." },
+      ]);
     }
   };
 
@@ -126,9 +220,8 @@ export default function CreateJobScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={0} // 👈 prevent extra gap from offset
+      keyboardVerticalOffset={0}
     >
-      {/* Remove bottom edge to avoid double padding with the keyboard */}
       <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
         {user ? (
           <>
@@ -138,7 +231,7 @@ export default function CreateJobScreen() {
                 styles.chatWindow,
                 { backgroundColor: theme.appBackground },
               ]}
-              contentContainerStyle={{ paddingBottom: 16 }} // small extra room for bubbles
+              contentContainerStyle={{ paddingBottom: 16 }}
               keyboardShouldPersistTaps="handled"
             >
               {messages.map((msg, idx) =>
@@ -156,6 +249,43 @@ export default function CreateJobScreen() {
                   <ActivityIndicator size="small" />
                 </View>
               )}
+
+              {pendingJob && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    gap: 12,
+                    marginTop: 8,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: theme.tileBackground,
+                      padding: 12,
+                      borderRadius: 8,
+                    }}
+                    onPress={confirmJob}
+                  >
+                    <Text style={{ color: theme.tileText, fontWeight: "600" }}>
+                      Confirm Job
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: theme.surface,
+                      padding: 12,
+                      borderRadius: 8,
+                    }}
+                    onPress={() => setPendingJob(null)} // clears summary so chat continues
+                  >
+                    <Text style={{ color: theme.text, fontWeight: "600" }}>
+                      Add More Details
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </ScrollView>
 
             <View
@@ -163,7 +293,6 @@ export default function CreateJobScreen() {
                 styles.chatInput,
                 {
                   backgroundColor: theme.surface,
-                  // add bottom safe padding only when keyboard is CLOSED
                   paddingBottom: 10 + (kbOpen ? 0 : insets.bottom),
                 },
               ]}
@@ -174,7 +303,10 @@ export default function CreateJobScreen() {
                   { backgroundColor: theme.appBackground, color: theme.text },
                 ]}
                 value={input}
-                onChangeText={setInput}
+                onChangeText={(text) => {
+                  if (pendingJob) setPendingJob(null); // auto-clear if typing
+                  setInput(text);
+                }}
                 placeholder="Type a message..."
                 placeholderTextColor="#888"
                 returnKeyType="send"
@@ -187,7 +319,11 @@ export default function CreateJobScreen() {
               >
                 <Image
                   source={require("@/assets/images/icons/send-icon.png")}
-                  style={[styles.sendIcon, isThinking && { opacity: 0.5 }]}
+                  style={[
+                    styles.sendIcon,
+                    isThinking && { opacity: 0.5 },
+                    { tintColor: theme.buttonTint },
+                  ]}
                 />
               </TouchableOpacity>
             </View>
@@ -219,7 +355,7 @@ const styles = StyleSheet.create({
   },
   chatInput: {
     width: "100%",
-    paddingVertical: 10, // top stays 10; bottom gets overridden above
+    paddingVertical: 10,
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",

@@ -1,3 +1,4 @@
+import { useTheme } from '@/components/ThemeContext';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -10,6 +11,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
+  const { theme } = useTheme();
 
   const handleSignIn = async () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -22,25 +24,29 @@ export default function SignInScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View>
-        <Text style={styles.viewName}>Sign In</Text>
-        <Text>Email</Text>
-        <TextInput value={email} onChangeText={setEmail} style={styles.input} />
-        <Text>Password</Text>
-        <TextInput value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
-        <TouchableOpacity style={styles.buttonPrimary} onPress={handleSignIn}>
-          <Text style={styles.buttonText}>Sign In</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.appBackground }]}>
+      <View style={{ rowGap: 16 }}>
+        <Text style={[styles.viewName, { color: theme.text }]}>Sign In</Text>
+        <View>
+          <Text style={{ color: theme.text }}>Email</Text>
+          <TextInput value={email} onChangeText={setEmail} style={styles.input} />
+        </View>
+        <View>
+          <Text style={{ color: theme.text }}>Password</Text>
+          <TextInput value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+        </View>
+        <TouchableOpacity style={[styles.buttonPrimary, { backgroundColor: theme.primary }]} onPress={handleSignIn}>
+          <Text style={[styles.buttonText, { color: theme.buttonText }]}>Sign In</Text>
         </TouchableOpacity>
-        <Text style={{color: colors.error, marginTop: 20}}>{msg}</Text>
+        <Text style={{ color: colors.error, marginTop: 20 }}>{msg}</Text>
       </View>
       {/* ✅ Expo Router navigation */}
       <View style={styles.bottomContent}>
-              <Text style={styles.bottomText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={() => router.push('/auth/sign-up')}>
-                <Text style={[styles.bottomTextLink, { color: colors.secondary, marginLeft: 5 }]}>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
+        <Text style={styles.bottomText}>Don't have an account?</Text>
+        <TouchableOpacity onPress={() => router.push('/auth/sign-up')}>
+          <Text style={[styles.bottomTextLink, { color: colors.secondary, marginLeft: 5 }]}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -56,7 +62,6 @@ const styles = StyleSheet.create({
     gap: 5, // spacing between text and button (requires React Native 0.71+)
   },
   buttonPrimary: {
-    backgroundColor: colors.buttonPrimary,
     borderRadius: 7,
     flexDirection: 'row',
     alignItems: 'center',
@@ -65,7 +70,7 @@ const styles = StyleSheet.create({
     paddingEnd: 30,
     paddingTop: 11,
     paddingBottom: 11,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   buttonText: {
     color: '#fff',               // text color
@@ -77,5 +82,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '400',
   },
-  bottomTextLink: {fontWeight: 'bold', fontSize: 15 }
+  bottomTextLink: { fontWeight: 'bold', fontSize: 15 }
 });

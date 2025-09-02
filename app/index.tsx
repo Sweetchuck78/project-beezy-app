@@ -1,12 +1,13 @@
 // app/index.tsx
+import { useTheme } from "@/components/ThemeContext";
 import { useRouter } from "expo-router";
 import { Dimensions, Image, ImageBackground, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import colors from "../assets/colors";
 
 const { height: windowHeight } = Dimensions.get('window'); // get viewport height
 
 export default function GetStartedScreen() {
   const router = useRouter();
+   const { theme } = useTheme();
 
   return (
     <ImageBackground
@@ -14,35 +15,38 @@ export default function GetStartedScreen() {
       style={styles.background}
       resizeMode="cover" // 'cover' fills the screen while keeping aspect ratio
     >
-      <View style={styles.container}>
+      <View style={[styles.container, {backgroundColor: theme.appBackground}]}>
         <Image
           source={require('../assets/images/beezy-logo-type.png')}
           style={styles.logo}
+          tintColor={theme.primary}
           resizeMode="contain"
         />
 
-         <Text style={styles.introText}>
+         <Text style={[styles.introText, {color: theme.text}]}>
         <Text style={styles.boldText}>Your next project, handled your way.</Text>{"\n"}
-        Post it and let trusted pros compete to get it done right.
+        Post a job and let trusted pros compete to get it done right.
       </Text>
 
         <TouchableOpacity
-          style={styles.buttonPrimary}
+          style={[styles.buttonPrimary, {backgroundColor: theme.primary}]}
           onPress={() => router.push("/auth/sign-up")}
         >
-          <Text style={styles.buttonText}>Get Started</Text>
+          <Text style={[styles.buttonText, {color: theme.buttonText}]}>Get Started</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.buttonSecondary}
+          style={[styles.buttonSecondary, {borderColor: theme.primary}]}
           onPress={() => router.push("/auth/sign-in")}
         >
-          <Text style={styles.buttonTextSecondary}>Sign In</Text>
+          <Text style={[styles.buttonTextSecondary, {color: theme.primary}]}>Sign In</Text>
         </TouchableOpacity>
 
-        <Text style={styles.termsText}>
-          By using this app, you agree to our <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text> and any other applicable rules and guidelines.
-        </Text>
+        <View style={{flexGrow: 1}}>
+          <Text style={[styles.termsText, {color: theme.text}]}>
+            By using this app, you agree to our <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text> and any other applicable rules and guidelines.
+          </Text>
+        </View>
       </View>
     </ImageBackground>
   );
@@ -59,13 +63,13 @@ export const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: colors.background,
     marginTop: windowHeight * 0.45,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    paddingBottom: 100,
   },
   introText: {
-    fontSize: 16,
+    fontSize: 17,
     marginBottom: 32,
     textAlign: "center",
     lineHeight: 24,
@@ -74,7 +78,6 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   buttonPrimary: {
-    backgroundColor: colors.buttonPrimary,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 7,
@@ -82,7 +85,6 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   buttonText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "700",
     fontFamily: Platform.OS === "ios" ? "System" : "sans-serif",
@@ -90,14 +92,12 @@ export const styles = StyleSheet.create({
   },
   buttonSecondary: {
     borderWidth: 2,
-    borderColor: colors.buttonPrimary,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 7,
     width: '100%',
   },
   buttonTextSecondary: {
-    color: colors.buttonPrimary,
     fontSize: 16,
     fontWeight: "700",
     textAlign: "center",
@@ -110,7 +110,6 @@ export const styles = StyleSheet.create({
   termsText: {
     fontSize: 12,
     textAlign: "center",
-    color: colors.text,
     marginTop: 20,
   },
   linkText: {

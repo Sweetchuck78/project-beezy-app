@@ -1,60 +1,62 @@
 /**
  * App color system with support for light and dark mode.
- * Use semantic names (primary, background, error, etc.)
- * instead of hardcoding hex values throughout the app.
+ * Updated design tokens.
  */
 
 export const Colors = {
   light: {
     // Core brand colors
-    primary: '#005C53',   // Your brand primary (light)
-    secondary: '#14B8A6',
+    primary: '#005C53',
+    secondary: '#9FC131',
     accent: '#F59E0B',
 
     // Backgrounds & surfaces
-    appBackground: '#F8F8F8', // global app background
-    background: '#F9FAFB',
+    appBackground: '#F8F8F8',
     surface: '#FFFFFF',
     elevated: '#F3F4F6',
-    tileBackground: '#FFFFFF', // NEW
+    accentTileBackground: '#DBF227',
+    buttonTint: '#FFFFFF',
 
     // Text colors
     text: '#232323',
     subtext: '#4B5563',
     muted: '#9CA3AF',
+    buttonText: '#FFFFFF',
 
     // State colors
-    success: '#22C55E',
-    warning: '#EAB308',
-    error: '#EF4444',
+    success: '#9FC131',
+    warning: '#F59E0B',
+    error: '#DC2626',
     info: '#3B82F6',
 
     // Icons & navigation
     icon: '#6B7280',
     tabIconDefault: '#9CA3AF',
-    tabIconSelected: '#005C53',
+    tabIconSelected: '#9FC131',
+    buttonIconTint: '#FFFFFF',
   },
 
   dark: {
     // Core brand colors
-    primary: '#DBF227',   // Your brand primary (dark)
-    secondary: '#2DD4BF',
-    accent: '#FBBF24',
+    primary: '#DBF227',
+    secondary: '#B6E043',
+    accent: '#DBF227',
 
     // Backgrounds & surfaces
-    appBackground: '#232323', // global app background
-    background: '#111827',
-    surface: '#121212',
+    appBackground: '#121212',
+    surface: '#232323',
     elevated: '#374151',
-    tileBackground: '#DBF227', // NEW
+    accentTileBackground: '#DBF227',
+    buttonTint: '#121212',
 
     // Text colors
     text: '#FFFFFF',
     subtext: '#D1D5DB',
     muted: '#9CA3AF',
+    buttonText: '#232323',
 
     // State colors
-    success: '#4ADE80',
+    success: '#B6E043',
     warning: '#FACC15',
     error: '#F87171',
     info: '#60A5FA',
@@ -62,6 +64,7 @@ export const Colors = {
     // Icons & navigation
     icon: '#9CA3AF',
     tabIconDefault: '#6B7280',
-    tabIconSelected: '#DBF227',
+    tabIconSelected: '#B6E043',
+    buttonIconTint: '#DBF227',
   },
 };
