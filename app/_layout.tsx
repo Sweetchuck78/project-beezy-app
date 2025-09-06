@@ -4,7 +4,7 @@ import { Colors } from '@/constants/Colors';
 import * as Font from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text as RNText, View, useColorScheme } from "react-native";
+import { ActivityIndicator, Image, Text as RNText, View, useColorScheme } from "react-native";
 import { supabase } from "../lib/supabase";
 
 export default function RootLayout() {
@@ -83,8 +83,14 @@ export default function RootLayout() {
   // Show spinner while loading
   if (loading || !fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor:Colors[colorScheme].appBackground}}>
-        <ActivityIndicator size="large" />
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.dark.primary }}>
+         <Image
+                  source={require('../assets/images/beezy-logo-type.png')}
+                  style={{width: 150, height: 50, marginBottom: 20}}
+                  tintColor={"#FFFFFF"}
+                  resizeMode="contain"
+                />
+        <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     );
   }
@@ -94,7 +100,7 @@ export default function RootLayout() {
    <ThemeProvider>
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-      <Stack.Screen name="jobs" options={{ headerShown: false }} />
+      {/* <Stack.Screen name="jobs" options={{ headerShown: false }} /> */}
       <Stack.Screen name="auth" options={{ headerShown: false }} />
     </Stack>
    </ThemeProvider>

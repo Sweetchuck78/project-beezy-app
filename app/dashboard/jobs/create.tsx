@@ -1,5 +1,6 @@
 import colors from "@/assets/colors";
 import { Colors } from "@/constants/Colors";
+import { router, Stack } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,12 +13,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
   useColorScheme,
+  View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import BotChatBubble from "../../components/ui/BotChatBubble";
-import { supabase } from "../../lib/supabase";
+import BotChatBubble from "../../../components/ui/BotChatBubble";
+import { supabase } from "../../../lib/supabase";
 
 // Chat message type for rendering bubbles
 type ChatMessage = {
@@ -32,6 +33,7 @@ type JobData = {
   budget?: string;
   timeframe?: string;
   category: string;
+  status: string;
 };
 
 export default function CreateJobScreen() {
@@ -217,20 +219,59 @@ export default function CreateJobScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={0}
-    >
-      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <>
+      <Stack.Screen
+        options={{
+          headerStyle: {
+            backgroundColor: theme.surface,
+          },
+          headerShadowVisible: false,
+          headerTitle: () => (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Image
+                source={require("@/assets/images/icons/bizzy-bot-avatar.png")}
+                style={{ width: 28, height: 28, borderRadius: 14, marginRight: 8 }}
+                resizeMode="contain"
+              />
+              <Text
+                style={{
+                  color: theme.text,
+                  fontWeight: "600",
+                  fontSize: 18,
+                }}
+              >
+                Bizzy Bot
+              </Text>
+            </View>
+          ),
+          headerTitleAlign: "center",
+
+          // 👇 custom back button
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 12 }}>
+              <Image
+                source={require("@/assets/images/icons/left-arrow.png")}
+                style={{ width: 32, height: 32, tintColor: theme.primary }} // 👈 respects theme color
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: theme.surface }]}
+        edges={["left", "right", "bottom"]}
+      >
         {user ? (
-          <>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={insets.top} // adjust if header overlaps
+          >
             <ScrollView
               ref={scrollViewRef}
-              style={[
-                styles.chatWindow,
-                { backgroundColor: theme.appBackground },
-              ]}
+              style={[styles.chatWindow, { backgroundColor: theme.appBackground }]}
               contentContainerStyle={{ paddingBottom: 16 }}
               keyboardShouldPersistTaps="handled"
             >
@@ -261,13 +302,13 @@ export default function CreateJobScreen() {
                 >
                   <TouchableOpacity
                     style={{
-                      backgroundColor: theme.tileBackground,
+                      backgroundColor: theme.primary,
                       padding: 12,
                       borderRadius: 8,
                     }}
                     onPress={confirmJob}
                   >
-                    <Text style={{ color: theme.tileText, fontWeight: "600" }}>
+                    <Text style={{ color: theme.text, fontWeight: "600" }}>
                       Confirm Job
                     </Text>
                   </TouchableOpacity>
@@ -278,7 +319,7 @@ export default function CreateJobScreen() {
                       padding: 12,
                       borderRadius: 8,
                     }}
-                    onPress={() => setPendingJob(null)} // clears summary so chat continues
+                    onPress={() => setPendingJob(null)}
                   >
                     <Text style={{ color: theme.text, fontWeight: "600" }}>
                       Add More Details
@@ -288,13 +329,11 @@ export default function CreateJobScreen() {
               )}
             </ScrollView>
 
+            {/* Input bar */}
             <View
               style={[
                 styles.chatInput,
-                {
-                  backgroundColor: theme.surface,
-                  paddingBottom: 10 + (kbOpen ? 0 : insets.bottom),
-                },
+                { backgroundColor: theme.surface, paddingBottom: insets.bottom || 10 },
               ]}
             >
               <TextInput
@@ -304,7 +343,7 @@ export default function CreateJobScreen() {
                 ]}
                 value={input}
                 onChangeText={(text) => {
-                  if (pendingJob) setPendingJob(null); // auto-clear if typing
+                  if (pendingJob) setPendingJob(null);
                   setInput(text);
                 }}
                 placeholder="Type a message..."
@@ -322,25 +361,26 @@ export default function CreateJobScreen() {
                   style={[
                     styles.sendIcon,
                     isThinking && { opacity: 0.5 },
-                    { tintColor: theme.buttonTint },
+                    { tintColor: "#FFFFFF" },
                   ]}
                 />
               </TouchableOpacity>
             </View>
-          </>
+          </KeyboardAvoidingView>
         ) : (
           <Text style={styles.subtext}>No user found. Please sign in.</Text>
         )}
       </SafeAreaView>
-    </KeyboardAvoidingView>
+    </>
   );
+
+
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "space-between",
-    alignItems: "center",
     backgroundColor: colors.background,
   },
   subtext: {
@@ -351,7 +391,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     paddingHorizontal: 30,
-    paddingTop: 100,
+    paddingTop: 20,
   },
   chatInput: {
     width: "100%",

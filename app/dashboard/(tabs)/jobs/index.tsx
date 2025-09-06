@@ -3,7 +3,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../../../lib/supabase';
 
 interface Job {
   id: string;
@@ -22,7 +22,7 @@ export default function JobsListScreen() {
   const fetchJobs = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from<Job>('jobs')
+      .from('jobs')
       .select('*')
       .eq('status', 'open')
       .order('created_at', { ascending: false });

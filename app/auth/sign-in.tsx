@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import colors from '../../assets/colors';
 import { supabase } from '../../lib/supabase';
 
 export default function SignInScreen() {
@@ -29,22 +28,22 @@ export default function SignInScreen() {
         <Text style={[styles.viewName, { color: theme.text }]}>Sign In</Text>
         <View>
           <Text style={{ color: theme.text }}>Email</Text>
-          <TextInput value={email} onChangeText={setEmail} style={styles.input} />
+          <TextInput value={email} onChangeText={setEmail} style={[styles.input, { color: theme.text }]} />
         </View>
         <View>
           <Text style={{ color: theme.text }}>Password</Text>
-          <TextInput value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+          <TextInput value={password} onChangeText={setPassword} secureTextEntry style={[styles.input, { color: theme.text }]} />
         </View>
         <TouchableOpacity style={[styles.buttonPrimary, { backgroundColor: theme.primary }]} onPress={handleSignIn}>
           <Text style={[styles.buttonText, { color: theme.buttonText }]}>Sign In</Text>
         </TouchableOpacity>
-        <Text style={{ color: colors.error, marginTop: 20 }}>{msg}</Text>
+        <Text style={{ color: theme.error, marginTop: 20 }}>{msg}</Text>
       </View>
       {/* ✅ Expo Router navigation */}
       <View style={styles.bottomContent}>
         <Text style={styles.bottomText}>Don't have an account?</Text>
         <TouchableOpacity onPress={() => router.push('/auth/sign-up')}>
-          <Text style={[styles.bottomTextLink, { color: colors.secondary, marginLeft: 5 }]}>Sign Up</Text>
+          <Text style={[styles.bottomTextLink, { color: theme.primary, marginLeft: 5 }]}>Sign Up</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
