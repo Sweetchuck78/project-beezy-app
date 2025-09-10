@@ -1,5 +1,5 @@
 // app/auth/verify-email.tsx
-import colors from "@/assets/colors";
+import { useTheme } from '@/components/ThemeContext';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -19,16 +19,23 @@ export default function VerifyEmailScreen() {
     const [isVerified, setIsVerified] = useState(false);
     const [loading, setLoading] = useState(false);
     const { email } = useLocalSearchParams<{ email?: string }>();
+    const { theme } = useTheme();
 
     useEffect(() => {
         const fetchUser = async () => {
-            const { data: sessionData, error } = await supabase.auth.getSession();
-            if (error) {
-                console.log("Error fetching session:", error.message);
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (!sessionData.session) {
+                console.log("⚠️ No active session yet");
                 return;
             }
 
-            const user = sessionData?.session?.user;
+            const { data, error } = await supabase.auth.getUser();
+            if (error) {
+                console.log("Error fetching user:", error.message);
+                return;
+            }
+
+            const user = data?.user;
             if (user?.email) {
                 setUserEmail(user.email);
                 setIsVerified(user.email_confirmed_at !== null);
@@ -36,17 +43,7 @@ export default function VerifyEmailScreen() {
         };
 
         fetchUser();
-
-        // Poll every 3s to check if email is confirmed
-        const interval = setInterval(async () => {
-            const { data: sessionData } = await supabase.auth.getSession();
-            const user = sessionData?.session?.user;
-            if (user?.email_confirmed_at) {
-                setIsVerified(true);
-                clearInterval(interval);
-            }
-        }, 3000);
-
+        const interval = setInterval(fetchUser, 3000);
         return () => clearInterval(interval);
     }, []);
 
@@ -57,21 +54,23 @@ export default function VerifyEmailScreen() {
     };
 
     const handleResendEmail = async () => {
-        if (!userEmail) return;
+        const { data } = await supabase.auth.getUser();
+        const email = data?.user?.email;
+        if (!email) return;
+
         setLoading(true);
         const { error } = await supabase.auth.resend({
             type: "signup",
-            email: userEmail,
+            email,
             options: {
-                emailRedirectTo: "https://largehumans.com", // or your redirect url
+                emailRedirectTo: "https://largehumans.com",
             },
         });
-
         setLoading(false);
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.white }]} edges={['bottom']}>
             <View style={styles.container}>
                 <View style={styles.formContainer}>
                     <Image
@@ -96,7 +95,7 @@ export default function VerifyEmailScreen() {
                         disabled={!isVerified || loading}
                     >
                         {loading ? (
-                            <ActivityIndicator color={colors.primary} />
+                            <ActivityIndicator color={theme.primary} />
                         ) : (
                             <Text style={styles.buttonText}>Continue</Text>
                         )}
@@ -108,7 +107,7 @@ export default function VerifyEmailScreen() {
                         style={[styles.transparentButton]}
                         onPress={handleResendEmail}
                     >
-                        <Text style={{ color: colors.secondary, fontSize: 16, fontWeight: "600" }}>Resend Email</Text>
+                        <Text style={{ color: theme.primary, fontSize: 16, fontWeight: "600" }}>Resend Email</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         padding: 20,
-        backgroundColor: colors.background,
         paddingBottom: 40,
     },
     formContainer: {
@@ -148,8 +146,8 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     button: {
-        backgroundColor: colors.buttonPrimary,
         paddingVertical: 14,
+        paddingHorizontal: 32,
         borderRadius: 8,
         alignItems: "center",
         marginTop: 20,

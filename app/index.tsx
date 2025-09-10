@@ -32,7 +32,7 @@ export default function GetStartedScreen() {
           style={[styles.buttonPrimary, {backgroundColor: theme.primary}]}
           onPress={() => router.push("/auth/sign-up")}
         >
-          <Text style={[styles.buttonText, {color: theme.buttonText}]}>Get Started</Text>
+          <Text style={[styles.buttonText, {color: theme.white}]}>Get Started</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

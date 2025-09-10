@@ -1,63 +1,64 @@
 /**
  * App color system with support for light and dark mode.
- * Earthy muted green design tokens.
+ * Aqua Citrus Pop design tokens.
  */
 
 export const Colors = {
   light: {
     // Core brand colors
-    primary: '#556B2F',      // dark olive green
-    secondary: '#6B8E23',    // muted olive
-    accent: '#B5A642',       // warm golden accent
+    primary: '#00B89F',      // Aqua-Teal
+    secondary: '#F5C518',    // Citrus Yellow
+    accent: '#FF6B6B',       // Coral
+    white: '#FFFFFF',
+    black: '#000000',
 
     // Gradients
-    primaryGradient: ['#556B2F', '#6B8E23'],    // olive blend
-    secondaryGradient: ['#6B8E23', '#A2B86C'],  // olive → sage
+    primaryGradient: ['#00B89F', '#34D1BF'],   // aqua teal → lighter teal
+    secondaryGradient: ['#F5C518', '#FFD95E'], // citrus → golden yellow
 
     // Backgrounds & surfaces
-    appBackground: '#F8F8F5',
+    appBackground: '#F8F8F8',
     surface: '#FFFFFF',
-    elevated: '#E5E7E0',
-    accentTileBackground: '#556B2F',
+    elevated: '#F3F4F6',
     buttonTint: '#FFFFFF',
 
     // Text colors
     text: '#232323',
     subtext: '#4B5563',
-    muted: '#7D7D6B',
+    muted: '#9CA3AF',
     buttonText: '#FFFFFF',
     invertedText: '#FFFFFF',
-    accentTileText: '#FFFFFF',
 
     // State colors
-    success: '#6B8E23',  // olive
-    warning: '#D4A017',  // muted mustard
-    error: '#B94E48',    // earthy red
-    info: '#3A6F81',     // desaturated teal
+    success: '#34D399',
+    warning: '#F59E0B',
+    error: '#DC2626',
+    info: '#3B82F6',
 
     // Icons & navigation
     icon: '#6B7280',
     tabIconDefault: '#9CA3AF',
-    tabIconSelected: '#556B2F',
+    tabIconSelected: '#00B89F',
     buttonIconTint: '#FFFFFF',
   },
 
   dark: {
     // Core brand colors
-    primary: '#A2B86C',     // lighter sage green for dark mode
-    secondary: '#C2C98D',   // muted pale olive
-    accent: '#DCC48E',      // warm beige accent
+    primary: '#00B89F',      // Aqua-Teal
+    secondary: '#F5C518',    // Citrus Yellow
+    accent: '#FF6B6B',       // Coral
+    white: '#FFFFFF',
+    black: '#000000',
 
     // Gradients
-    primaryGradient: ['#A2B86C', '#6B8E23'],   // sage → olive
-    secondaryGradient: ['#C2C98D', '#DCC48E'], // pale olive → beige
+    primaryGradient: ['#00B89F', '#17877B'],   // aqua teal → darker teal
+    secondaryGradient: ['#F5C518', '#B78C00'], // citrus → darker amber
 
     // Backgrounds & surfaces
-    appBackground: '#1A1A17',
-    surface: '#232320',
-    elevated: '#2F2F2C',
-    accentTileBackground: '#A2B86C',
-    buttonTint: '#1A1A17',
+    appBackground: '#121212',
+    surface: '#232323',
+    elevated: '#374151',
+    buttonTint: '#121212',
 
     // Text colors
     text: '#FFFFFF',
@@ -65,18 +66,17 @@ export const Colors = {
     muted: '#9CA3AF',
     buttonText: '#232323',
     invertedText: '#232323',
-    accentTileText: '#232323',
 
     // State colors
-    success: '#A2B86C',
-    warning: '#E5B567',
-    error: '#D17878',
-    info: '#6CA0A3',
+    success: '#10B981',
+    warning: '#FACC15',
+    error: '#F87171',
+    info: '#60A5FA',
 
     // Icons & navigation
     icon: '#9CA3AF',
     tabIconDefault: '#6B7280',
-    tabIconSelected: '#A2B86C',
-    buttonIconTint: '#A2B86C',
+    tabIconSelected: '#F5C518',
+    buttonIconTint: '#00B89F',
   },
 };

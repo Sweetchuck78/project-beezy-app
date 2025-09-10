@@ -25,7 +25,11 @@ export default function RootLayout() {
         });
 
         (RNText as any).defaultProps = (RNText as any).defaultProps || {};
-        (RNText as any).defaultProps.style = { fontFamily: "InterVariable" };
+        (RNText as any).defaultProps.style = [
+          (RNText as any).defaultProps.style,
+          { fontFamily: "InterVariable" },
+        ];
+
 
         setFontsLoaded(true);
       } catch {
@@ -84,12 +88,12 @@ export default function RootLayout() {
   if (loading || !fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.dark.primary }}>
-         <Image
-                  source={require('../assets/images/beezy-logo-type.png')}
-                  style={{width: 150, height: 50, marginBottom: 20}}
-                  tintColor={"#FFFFFF"}
-                  resizeMode="contain"
-                />
+        <Image
+          source={require('../assets/images/beezy-logo-type.png')}
+          style={{ width: 150, height: 50, marginBottom: 20 }}
+          tintColor={"#FFFFFF"}
+          resizeMode="contain"
+        />
         <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     );
@@ -97,12 +101,12 @@ export default function RootLayout() {
 
   // Always return a <Stack /> for Expo Router
   return (
-   <ThemeProvider>
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-      {/* <Stack.Screen name="jobs" options={{ headerShown: false }} /> */}
-      <Stack.Screen name="auth" options={{ headerShown: false }} />
-    </Stack>
-   </ThemeProvider>
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="jobs" options={{ headerShown: false }} /> */}
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+      </Stack>
+    </ThemeProvider>
   );
 }
