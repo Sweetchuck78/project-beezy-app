@@ -1,11 +1,13 @@
 // Dashboard/Tabs/Index
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../../lib/supabase';
+
 
 
 export default function DashboardScreen() {
@@ -15,6 +17,8 @@ export default function DashboardScreen() {
   const [loadingJobs, setLoadingJobs] = useState<boolean>(true);
   const [topProviders, setTopProviders] = useState<any[]>([]);
   const [loadingProviders, setLoadingProviders] = useState<boolean>(true);
+  const insets = useSafeAreaInsets();
+
 
   const colorScheme = useColorScheme() || "light";
   const theme = Colors[colorScheme];
@@ -123,82 +127,84 @@ export default function DashboardScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.parentContainer, { backgroundColor: theme.appBackground }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={styles.column}>
-          <View style={{ flexDirection: 'column', rowGap: 8 }}>
-            <Text style={[styles.viewName, { color: theme.text }]}>Hi, {firstName}</Text>
-            <Text style={[styles.introText, { color: theme.text }]}>What do you need help with today?</Text>
+    <LinearGradient colors={[theme.primary, theme.secondary]} style={{ flex: 1 }}>
+      <SafeAreaView style={styles.fillViewport} edges={['top']}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 0, flexGrow: 1 }}>
+          <View style={{ flexDirection: 'column', rowGap: 8, paddingHorizontal: 20, paddingVertical: 24 }}>
+            <Text style={[styles.viewName, { color: theme.white }]}>Hi, {firstName}</Text>
+            <Text style={[styles.introText, { color: theme.white }]}>What do you need help with today?</Text>
           </View>
-
-          {/* Jobs Tile – only show if latest job is open */}
-          <Text style={{ color: theme.text, fontSize: 16, fontWeight: '600', marginTop: 16, }}>Current Project</Text>
-          {!loadingJobs && jobs && jobs.length > 0 && jobs[0].status === "open" && (
-            <View style={[styles.tile, { backgroundColor: theme.surface }]}>
-              <TouchableOpacity
-                style={{ backgroundColor: theme.primary, borderRadius: 16, padding: 20 }}
-                onPress={() => router.push(`./jobs/${jobs[0].id}`)}
-                activeOpacity={0.8}
-              >
-                <View
-                  style={{
-                    borderColor: theme.invertedText,
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
+          {/* PRIMARY CONTENT */}
+          <View style={[{ backgroundColor: theme.appBackground, flex: 1 }, styles.parentContainer]}>
+            {/* Jobs Tile – only show if latest job is open */}
+            <Text style={{ color: theme.text, fontSize: 16, fontWeight: '600', marginTop: 16, }}>Current Project</Text>
+            {!loadingJobs && jobs && jobs.length > 0 && jobs[0].status === "open" && (
+              <View style={[styles.tile, { backgroundColor: theme.surface }]}>
+                <TouchableOpacity
+                  style={{ backgroundColor: theme.primary, borderRadius: 16, padding: 20 }}
+                  onPress={() => router.push(`./jobs/${jobs[0].id}`)}
+                  activeOpacity={0.8}
                 >
-                  <Text
-                    style={[
-                      styles.jobTitle,
-                      {
-                        color: theme.invertedText,
-                        marginVertical: 4,
-                        flexGrow: 1,
-                      },
-                    ]}
+                  <View
+                    style={{
+                      borderColor: theme.invertedText,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
                   >
-                    {jobs[0].summary || "Untitled Job"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={theme.invertedText}
-                  />
-                </View>
+                    <Text
+                      style={[
+                        styles.jobTitle,
+                        {
+                          color: theme.invertedText,
+                          marginVertical: 4,
+                          flexGrow: 1,
+                        },
+                      ]}
+                    >
+                      {jobs[0].summary || "Untitled Job"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={theme.invertedText}
+                    />
+                  </View>
 
-                {/* CATEGORY AND STATUS */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "flex-start",
-                    gap: 8,
-                    marginTop: 12,
-                  }}
-                >
-                  {/* <Text style={[styles.tag, { color: theme.buttonIconTint }]}>
+                  {/* CATEGORY AND STATUS */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "flex-start",
+                      gap: 8,
+                      marginTop: 12,
+                    }}
+                  >
+                    {/* <Text style={[styles.tag, { color: theme.buttonIconTint }]}>
                     {jobs[0].category || "Uncategorized"}
                   </Text> */}
-                  <Text style={[styles.tag, { color: theme.buttonIconTint }]}>
-                    {jobs[0].status}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              {jobs && jobs.length > 0 && (
-                <TouchableOpacity
-                  style={[styles.outlineButton, { borderColor: theme.primary, borderWidth: 1 }]}
-                  onPress={() => router.push('/dashboard/(tabs)/jobs')}
-                >
-                  <Text style={{ color: theme.primary, fontWeight: '600', fontSize: 16 }}>
-                    View All Jobs
-                  </Text>
-                  {/* <Ionicons name="chevron-forward" size={20} color={theme.primary} /> */}
+                    <Text style={[styles.tag, { color: theme.buttonIconTint }]}>
+                      {jobs[0].status}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
-              )}
-            </View>
-          )}
-
+                {jobs && jobs.length > 0 && (
+                  <TouchableOpacity
+                    style={[styles.outlineButton, { borderColor: theme.primary, borderWidth: 1 }]}
+                    onPress={() => router.push('/dashboard/(tabs)/jobs')}
+                  >
+                    <Text style={{ color: theme.primary, fontWeight: '600', fontSize: 16 }}>
+                      View All Projects
+                    </Text>
+                    {/* <Ionicons name="chevron-forward" size={20} color={theme.primary} /> */}
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+          {/* END PRIMARY CONTENT */}
 
 
 
@@ -220,29 +226,35 @@ export default function DashboardScreen() {
               )}
             </View>
           )} */}
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      {/* Floating Plus Button */}
-      <TouchableOpacity
-        style={[styles.floatingButton, { backgroundColor: theme.primary }]}
-        onPress={() => router.push("/dashboard/jobs/create")}
-      >
-        <Image
-          source={require("@/assets/images/icons/plus.png")}
-          style={styles.plus}
-          tintColor={"#FFFFFF"}
-        />
-      </TouchableOpacity>
-    </SafeAreaView>
+        {/* Floating Plus Button */}
+        <TouchableOpacity
+          style={[styles.floatingButton, { backgroundColor: theme.primary, marginBottom: insets.bottom + 8, marginRight: insets.right + 8 }]}
+          onPress={() => router.push("/dashboard/jobs/create")}
+        >
+          <Image
+            source={require("@/assets/images/icons/plus.png")}
+            style={styles.plus}
+            tintColor={"#FFFFFF"}
+          />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  fillViewport: {
+    flex: 1
+  },
   parentContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    padding: 16,
+    padding: 20,
+    rowGap: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   column: {
     flexDirection: 'column', rowGap: 16
@@ -253,8 +265,8 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: 30,
-    right: 30,
+    bottom: 0,
+    right: 16,
     width: 48,
     height: 48,
     borderRadius: 40,
